@@ -56,7 +56,7 @@
         <pre><code>git clone https://github.com/yourusername/timetable-management-system.git
 cd timetable-management-system</code></pre>
         <li>Run the main script:</li>
-        <pre><code>python main.py</code></pre>
+        <pre><code>python fileName.py</code></pre>
         <li>Follow the prompts to log in, manage classes, and view the timetable.</li>
     </ol>
     <h2>Classes and Methods</h2>
@@ -121,8 +121,8 @@ cd timetable-management-system</code></pre>
     <h2>Contributing</h2>
     <p>Feel free to contribute to this project by opening issues or submitting pull requests. Please ensure your contributions align with the project's overall goals and coding standards.</p>
     <h2>License</h2>
-    <p>This project is licensed under the MIT License. See the <a href="LICENSE">LICENSE</a> file for more details.</p>
+    <p>This project is patent to Tawfek. See the <a href="LICENSE">LICENSE</a> file for more details.</p>
     <h2>Contact</h2>
-    <p>For any inquiries or feedback, you can reach out to me at <a href="mailto:your.email@example.com">your.email@example.com</a>.</p>
+    <p>For any inquiries or feedback, you can reach out to me at <a href="mailto:your.email@example.com">jerry.contact@gmail.com</a>.</p>
 </body>
 </html>
