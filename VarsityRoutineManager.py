@@ -246,26 +246,34 @@ class ClassInfo(TimetableGenerator, Day, DateHelper):
 
 # Class 11: Iterator Example for Iterating through the timetable
 class TimetableIterator:
-    def __init__(self, timetable):
+    def __init__(self, timetable, teacher):
         self.timetable = timetable
+        self.teacher = teacher
         self.day_index = 0
         self.slot_index = 0
+        self.schedule = self._get_teacher_schedule()
+        
+    def _get_teacher_schedule(self):
+        schedule = []
+        for day, slots in self.timetable.items():
+            for slot, subject in slots.items():
+                if subject != "Free" and self.teacher in subject:
+                    schedule.append((day, slot, subject))
+        if not schedule:
+            raise TeacherNotFoundError(f"Error : Teacher with initials '{self.teacher}' not found in the timetable.")
+        return schedule
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if self.day_index < len(self.timetable):
-            current_day = list(self.timetable.keys())[self.day_index]
-            current_slot = list(self.timetable[current_day].keys())[self.slot_index]
-            result = (current_day, current_slot, self.timetable[current_day][current_slot])
-            self.slot_index += 1
-            if self.slot_index >= len(self.timetable[current_day]):
-                self.slot_index = 0
-                self.day_index += 1
+        if self.day_index < len(self.schedule):
+            result = self.schedule[self.day_index]
+            self.day_index += 1
             return result
         else:
             raise StopIteration
+
 
 # Class 12: Using NumPy for timetable data manipulation
 class TimetableAnalysis:
@@ -351,7 +359,6 @@ class LoginSystem:
         print("Too many invalid attempts to LogIn. Access denied.")
         return None
 
-
     def ask_for_role(self):
         attempts = 0
         while attempts < self.max_attempts:
@@ -364,6 +371,12 @@ class LoginSystem:
                 attempts += 1
         print("Too many invalid attempts to LogIn. Access denied.")
         return None
+    
+# Class 16 : Custom Exception for Teacher Not Found
+class TeacherNotFoundError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
 
 # Using map function for some analysis
 def map_slot_status(day, timetable):
@@ -371,6 +384,8 @@ def map_slot_status(day, timetable):
     slot_statuses = list(map(lambda x: (x[0], x[1], "Occupied" if x[2] != "Free" else "Free"), day_slots))
     return slot_statuses
 
+
+# Updated main function
 def main():
     print("\nYou have to LogIn first.")
 
@@ -414,15 +429,15 @@ def main():
 
     codes, titles = class_codes.get_all_classes()
 
-    if role in ["teacher", "ta"] :
+    if role in ["teacher", "ta"]:
         # Display full timetable
         timetable_gen.display_timetable()
-        print("\nAll the assigned Course Codes for this week : ", codes)
-        print("\nAll the assigned Course Titles for this week : ", titles)
-        while True :
+        print("\nAll the assigned Course Codes for this week: ", codes)
+        print("\nAll the assigned Course Titles for this week: ", titles)
+        while True:
             free_slots = timetable_analysis.count_free_slots()
-            print(f"\nNumber of free slots available : {free_slots}")
-            print("\nWould you like to assign or remove a class? (assign/remove/exit) : ", end=" ")
+            print(f"\nNumber of free slots available: {free_slots}")
+            print("\nWould you like to assign or remove a class? (assign/remove/exit): ", end=" ")
             choice = input().strip().lower()
             if choice == "assign":
                 day = d.Get_day()
@@ -432,12 +447,12 @@ def main():
                     continue
 
                 # Display slot status using map function
-                print("\nSlot Status :")
+                print("\nSlot Status:")
                 slot_statuses = map_slot_status(day, timetable)
                 for status in slot_statuses:
                     print(status)
 
-                print(f"Free slots for {day} : ", end=" ")
+                print(f"Free slots for {day}: ", end=" ")
                 free_slots = [slot for slot in timetable[day] if timetable[day][slot] == "Free"]
 
                 time_slot = ts.Get_timeSlot(timetable, day)
@@ -459,11 +474,11 @@ def main():
             elif choice == "remove":
                 day = d.Get_day()
 
-                print(f"Slots for {day} :")
+                print(f"Slots for {day}:")
                 for time_slot, subject in timetable[day].items():
                     print(f"{time_slot} : {subject}")
 
-                print("Enter the time slot to remove : ", end=" ")
+                print("Enter the time slot to remove: ", end=" ")
                 time_slot = input().strip()
                 while time_slot not in timetable[day]:
                     print("Invalid slot. Please try again.")
@@ -485,7 +500,7 @@ def main():
         print("You are logged in as a Student. You can only view the updated routine.")
 
     # Display updated timetable after all operations
-    print("\nFinal Updated Timetable :")
+    print("\nFinal Updated Timetable:")
     timetable_gen.display_timetable()
     print()
 
@@ -494,30 +509,51 @@ def main():
 
     # Display all unique class codes and titles after updates
     codes, titles = class_codes.get_all_classes()
-    print("\nUpdated all the assigned Course Codes for this week : ", codes)
-    print("\nUpdated all the assigned Course Titles for this week : ", titles)
+    print("\nUpdated all the assigned Course Codes for this week: ", codes)
+    print("\nUpdated all the assigned Course Titles for this week: ", titles)
 
-    # Check if user wants to see routine iteratively
     while True:
-        print("Do you want to see the routine in an iterative way? (yes or no) : ", end=" ")
-        routine_choice = input().strip().lower()
-        if routine_choice in ["yes", "no"]:
+        print("Do you want to see the number of classes a teacher has in the week? (yes or no): ", end=" ")
+        choice = input().strip().lower()
+        if choice == "yes":
+            while True:
+                print("Enter the teacher's initials: ", end=" ")
+                teacher_initials = input().strip().upper()
+                try:
+                    timetable_iterator = TimetableIterator(timetable, teacher_initials)
+                    num_classes = len(timetable_iterator.schedule)
+                    print(f"\nNumber of classes for {teacher_initials} in this week: {num_classes}")
+
+                    for day, slot, subject in timetable_iterator:
+                        print(f"{day} - {slot} : {subject}")
+                except TeacherNotFoundError as e:
+                    print(e)
+
+                # Ask for getting class schedule for specific course code
+                print("\nDo you want to see the class schedule for a specific course code? (yes or no): ", end=" ")
+                course_code_choice = input().strip().lower()
+                if course_code_choice == "yes":
+                    print("Enter the course code: ", end=" ")
+                    course_code = input().strip().upper()
+                    found = False
+                    for day, slots in timetable.items():
+                        for slot, subject in slots.items():
+                            if course_code in subject:
+                                print(f"{day} - {slot} : {subject}")
+                                found = True
+                    if not found:
+                        print(f"No schedule found for course code '{course_code}'.")
+
+                print("\nWould you like to search for another teacher? (yes or no): ", end=" ")
+                more_search = input().strip().lower()
+                if more_search == "no":
+                    break
+        elif choice == "no":
             break
         else:
             print("Invalid input. Write 'yes' or 'no'.")
 
-    if routine_choice == "yes":
-        # Creating an instance of TimetableIterator
-        timetable_iterator = TimetableIterator(timetable)
 
-        # Iterating through the timetable using the iterator
-        for day, slot, subject in timetable_iterator:
-            print(f"{day} - {slot} : {subject}")
-
-    # Convert timetable to DataFrame and display it using pandas
-    timetable_df = timetable_gen.convert_to_dataframe()
-
-    print("\nThe system is exited.\n")
-
+    print("\nThe system is exited.")
 
 main()
